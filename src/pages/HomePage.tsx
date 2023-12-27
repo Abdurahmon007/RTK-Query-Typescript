@@ -1,8 +1,7 @@
+import React from "react";
 import { useSearchUsersQuery } from "../store/github/github.api";
 
-const HomePage = () => {
+export const HomePage = () => {
   const { isLoading, isSuccess, data } = useSearchUsersQuery("vladilen");
   return <div>HomePage</div>;
 };
-
-export default HomePage;
