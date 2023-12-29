@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
-import { useSearchUsersQuery } from "../store/github/github.api";
+import {
+  useLazyGetUserReposQuery,
+  useSearchUsersQuery,
+} from "../store/github/github.api";
 import { useDebounce } from "../hooks/debounce";
+import RepoCard from "../components/RepoCard";
 
 export const HomePage = () => {
   const [search, setSearch] = useState("");
@@ -9,20 +13,28 @@ export const HomePage = () => {
 
   const { isLoading, isError, data } = useSearchUsersQuery(debounced, {
     skip: debounced.length < 3,
+    refetchOnFocus: true,
   });
+
+  const [
+    getRepos,
+    { isLoading: isReposLoading, isError: isReposError, data: repos },
+  ] = useLazyGetUserReposQuery();
 
   useEffect(() => {
     setDropdown(debounced.length > 3 && data?.length! > 0);
   }, [debounced, data]);
 
-  const clickHandler = (username: string) => {};
+  const clickHandler = (username: string) => {
+    getRepos(username);
+    setDropdown(false);
+  };
 
   return (
     <div className="flex justify-center pt-10 mx-auto w-screen h-screen">
       {isError && (
         <p className="text-center text-red-600">Something went wrong...</p>
       )}
-
       <div className="relative w-[560px]">
         <input
           type="text"
@@ -45,6 +57,12 @@ export const HomePage = () => {
               </li>
             ))}
         </ul>
+        <div className="container">
+          {isLoading && <p className="text-center">Repos are Loading...</p>}
+          {repos?.map((repo) => (
+            <RepoCard key={repo.id} repo={repo} />
+          ))}
+        </div>
       </div>
     </div>
   );
